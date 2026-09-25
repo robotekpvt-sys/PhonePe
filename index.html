@@ -81,13 +81,16 @@ h1,h2,h3,p{margin:0}
 .pb-ic{width:30px;height:30px;border-radius:50%;background:#1A0F33;color:#FFD98A;display:grid;place-items:center}
 .sec-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 14px}
 .pad .sec-h h2{margin:0;font:700 17px/1.2 var(--f-ui);letter-spacing:.1px}
-.invite{display:inline-flex;gap:6px;align-items:center;background:var(--warm-bg);color:var(--warm-ink);border:1px solid transparent;border-radius:99px;padding:7px 12px;font:600 13px var(--f-ui)}
+.invite{display:inline-flex;gap:7px;align-items:center;background:linear-gradient(90deg,#4A1408,#7A1F0E);color:#FF9F6B;border:1px solid rgba(255,138,61,.35);border-radius:99px;padding:7px 14px 7px 8px;font:700 13px var(--f-ui)}
+.invite .coinw{width:20px;height:20px;border-radius:50%;background:#FFB020;color:#5A2E00;display:grid;place-items:center;flex:none}
+.invite .coinw .i{width:13px;height:13px}
+.invite .arrow{opacity:.85}
 .mts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .mt{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:10px;font:500 13px/1.3 var(--f-ui);text-align:center;padding:0}
 .mt>span:last-child{max-width:76px}
 .mt-ic{position:relative;width:70px;height:70px;border-radius:50%;background:#6A1FD6;color:#fff;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .mti{width:42px;height:42px;display:block}
-.gdot{position:absolute;top:2px;right:3px;width:13px;height:13px;border-radius:50%;background:#22C55E;border:2.5px solid var(--bg)}
+.gdot{position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:#22C55E;border:2.5px solid var(--surface,#fff)}
 .cb-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#F26A2E;color:#fff;font:600 11px/1 var(--f-ui);padding:4px 8px;border-radius:5px;font-style:normal;white-space:nowrap}
 .promos{display:flex;gap:10px;overflow-x:auto;margin:22px -16px 0;padding:0 16px 4px;scrollbar-width:none}
 .promos::-webkit-scrollbar{display:none}
@@ -407,6 +410,7 @@ const ICONS={
  'share-2':'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
  'house-fill':'<path d="M12 2.8 3 10.6V20a1 1 0 0 0 1 1h5v-6h6v6h5a1 1 0 0 0 1-1v-9.4z"/>',
  'scan-qr':'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="4" height="4" rx=".6"/><rect x="13" y="7" width="4" height="4" rx=".6"/><rect x="7" y="13" width="4" height="4" rx=".6"/><path d="M13 13h1.5v1.5H13z"/><path d="M15.5 15.5H17V17h-1.5z"/>',
+ 'coin':`<circle cx="12" cy="12" r="8"/><path d="M9.5 9a2.5 2 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><path d="M12 15.5h.01"/>`.replace('r="2.5 2"','rx="2.5" ry="2"'),
  'inbox':'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>'
 };
 const ic=(n,c='')=>{const f=n.endsWith('-fill');return `<svg class="i ${c}" viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="${f?'none':'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;};
@@ -614,75 +618,33 @@ async function verifyPin(title,sub){
 }
 
 
-```javascript
 /* ---------- sound ---------- */
 let actx=null;
-
 function unlockAudio(){
   if(actx)return;
-  try{
-    actx=new (window.AudioContext||window.webkitAudioContext)();
-  }catch(e){
-    return;
-  }
+  try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
 }
-
 document.addEventListener('pointerdown',unlockAudio,{once:true});
-
 function beep(ctx,t0,freq,dur,peak){
   const o=ctx.createOscillator(),g=ctx.createGain();
-
-  o.type='sine';
-  o.frequency.setValueAtTime(freq,t0);
-
+  o.type='sine';o.frequency.setValueAtTime(freq,t0);
   g.gain.setValueAtTime(0,t0);
   g.gain.linearRampToValueAtTime(peak,t0+0.015);
   g.gain.exponentialRampToValueAtTime(0.001,t0+dur);
-
-  o.connect(g);
-  g.connect(ctx.destination);
-
-  o.start(t0);
-  o.stop(t0+dur+0.02);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(t0);o.stop(t0+dur+0.02);
 }
-
-
-/* ---------- SUCCESS MUSIC ONLY ---------- */
-
-let successMusic=null;
-
-function playSuccessMusic(){
-  if(!successMusic){
-    successMusic=new Audio("RB MUSIC.mp3");
-    successMusic.volume=0.8;
-    successMusic.preload="auto";
-  }
-
-  successMusic.currentTime=0;
-  successMusic.play().catch(()=>{});
-}
-
-
-/* ---------- SUCCESS ---------- */
-
 function playSuccessChime(){
-  // ONLY RB MUSIC.mp3 on success
-  playSuccessMusic();
-}
-
-
-/* ---------- FAIL ---------- */
-
-function playFailTone(){
-  unlockAudio();
-  if(!actx)return;
-
-  if(actx.state==='suspended'){
-    actx.resume().catch(()=>{});
-  }
-
+  unlockAudio();if(!actx)return;
+  if(actx.state==='suspended')actx.resume().catch(()=>{});
   const t=actx.currentTime;
-
+  beep(actx,t,880,0.16,0.16);
+  beep(actx,t+0.13,1318.5,0.28,0.15);
+}
+function playFailTone(){
+  unlockAudio();if(!actx)return;
+  if(actx.state==='suspended')actx.resume().catch(()=>{});
+  const t=actx.currentTime;
   beep(actx,t,392,0.22,0.14);
 }
 
@@ -752,7 +714,7 @@ const HERO_ART=`<svg class="hero-art" viewBox="0 0 150 130" aria-hidden="true">
  <path d="M124 14l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#FFE9A8"/><path d="M22 28l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#FFE9A8"/>
 </svg>`;
 const MT_ICONS={
- mobile:`<svg class="mti" viewBox="0 0 40 40" aria-hidden="true"><rect x="10" y="5" width="20" height="30" rx="4.5" fill="#4A11A6" stroke="#fff" stroke-width="2.6"/><g transform="translate(14.2 14.2) scale(.5)" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></g></svg>`,
+ mobile:`<svg class="mti" viewBox="0 0 40 40" aria-hidden="true"><rect x="6" y="6" width="28" height="28" rx="8" fill="#F3EEFB"/><g transform="translate(11.5 11.5) scale(.72)" fill="none" stroke="#5B21B6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></g></svg>`,
  bank:`<svg class="mti" viewBox="0 0 40 40" aria-hidden="true" fill="#fff"><path d="M20 5.5 35 14v2.5H5V14z"/><rect x="8" y="19" width="4.2" height="11" rx=".8"/><rect x="14.6" y="19" width="4.2" height="11" rx=".8"/><rect x="21.2" y="19" width="4.2" height="11" rx=".8"/><rect x="27.8" y="19" width="4.2" height="11" rx=".8"/><rect x="5" y="32.5" width="30" height="3.5" rx="1.2"/></svg>`,
  upi:`<svg class="mti" viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="9.5" width="24" height="24" rx="5.5" fill="#E7DBFF"/><path d="M11 9.5h14a3 3 0 0 1 3 3v0H11z" fill="#C9AEFA"/><rect x="23.5" y="19" width="10.5" height="9" rx="3.2" fill="#B58CF7"/><circle cx="27.6" cy="23.5" r="1.6" fill="#4A11A6"/><g transform="translate(10.8 16.2) scale(.58)" fill="none" stroke="#4A11A6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></g></svg>`,
  balance:`<svg class="mti" viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="5" width="22" height="30" rx="5" fill="#4A11A6" stroke="#fff" stroke-width="2.6"/><g transform="translate(12.4 12.4) scale(.64)" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/></g></svg>`
@@ -774,7 +736,7 @@ screens.home=()=>{
     </div>
   </section>
   <div class="pad">
-    <div class="sec-h"><h2>Money Transfers</h2><button class="invite" data-act="invite">${ic('gift','s')} Invite friends</button></div>
+    <div class="sec-h"><h2>Money Transfers</h2><button class="invite" data-act="invite"><span class="coinw">${ic('coin')}</span>Refer <span class="arrow">${ic('arrow-right','s')}</span> ₹200</button></div>
     <div class="mts">
       ${mt('mobile','To Mobile Number','go','data-s="contacts"','',true)}
       ${mt('bank','To Bank &amp; Self A/c','go','data-s="toBank"')}
