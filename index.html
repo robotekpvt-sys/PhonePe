@@ -614,33 +614,75 @@ async function verifyPin(title,sub){
 }
 
 
+```javascript
 /* ---------- sound ---------- */
 let actx=null;
+
 function unlockAudio(){
   if(actx)return;
-  try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+  try{
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+  }catch(e){
+    return;
+  }
 }
+
 document.addEventListener('pointerdown',unlockAudio,{once:true});
+
 function beep(ctx,t0,freq,dur,peak){
   const o=ctx.createOscillator(),g=ctx.createGain();
-  o.type='sine';o.frequency.setValueAtTime(freq,t0);
+
+  o.type='sine';
+  o.frequency.setValueAtTime(freq,t0);
+
   g.gain.setValueAtTime(0,t0);
   g.gain.linearRampToValueAtTime(peak,t0+0.015);
   g.gain.exponentialRampToValueAtTime(0.001,t0+dur);
-  o.connect(g);g.connect(ctx.destination);
-  o.start(t0);o.stop(t0+dur+0.02);
+
+  o.connect(g);
+  g.connect(ctx.destination);
+
+  o.start(t0);
+  o.stop(t0+dur+0.02);
 }
+
+
+/* ---------- SUCCESS MUSIC ONLY ---------- */
+
+let successMusic=null;
+
+function playSuccessMusic(){
+  if(!successMusic){
+    successMusic=new Audio("RB MUSIC.mp3");
+    successMusic.volume=0.8;
+    successMusic.preload="auto";
+  }
+
+  successMusic.currentTime=0;
+  successMusic.play().catch(()=>{});
+}
+
+
+/* ---------- SUCCESS ---------- */
+
 function playSuccessChime(){
-  unlockAudio();if(!actx)return;
-  if(actx.state==='suspended')actx.resume().catch(()=>{});
-  const t=actx.currentTime;
-  beep(actx,t,880,0.16,0.16);
-  beep(actx,t+0.13,1318.5,0.28,0.15);
+  // ONLY RB MUSIC.mp3 on success
+  playSuccessMusic();
 }
+
+
+/* ---------- FAIL ---------- */
+
 function playFailTone(){
-  unlockAudio();if(!actx)return;
-  if(actx.state==='suspended')actx.resume().catch(()=>{});
+  unlockAudio();
+  if(!actx)return;
+
+  if(actx.state==='suspended'){
+    actx.resume().catch(()=>{});
+  }
+
   const t=actx.currentTime;
+
   beep(actx,t,392,0.22,0.14);
 }
 
